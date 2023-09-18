@@ -8,4 +8,4 @@ COPY --from=verify /rootfs/ /
 RUN ldconfig
 ENV LANG=C.UTF-8
 CMD ["/usr/bin/bash"]
-LABEL org.opencontainers.image.source https://github.com/eko5624/archlinux-docker
+LABEL org.opencontainers.image.source https://github.com/eko5624/docker
