@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    name: Building Archlinux docker
+    name: Building docker
     runs-on: ubuntu-latest
     container:
       image: docker://archlinux:latest
