@@ -32,7 +32,7 @@ jobs:
           cp --recursive --preserve=timestamps --backup --suffix=.pacnew rootfs/* build/
           fakechroot -- fakeroot -- pacman -Sy -r build --noconfirm --dbpath build/var/lib/pacman --config pacman.conf --noscriptlet --hookdir build/alpm-hooks/usr/share/libalpm/hooks/ ${packages[@]}
           fakechroot -- fakeroot -- chroot build update-ca-trust
-          fakechroot -- fakeroot -- chroot build bash -c 'pip3 install --no-cache-dir --upgrade --break-system-packages setuptools rst2pdf mako jsonschema meson'
+          fakechroot -- fakeroot -- chroot build pip3 install --no-cache-dir --upgrade --break-system-packages setuptools rst2pdf mako jsonschema meson
           fakechroot -- fakeroot -- chroot build sh -c 'pacman-key --init && pacman-key --populate && bash -c "rm -rf etc/pacman.d/gnupg/{openpgp-revocs.d/,private-keys-v1.d/,pubring.gpg~,gnupg.S.}*"'
           ln -fs /usr/lib/os-release build/etc/os-release
           # add system users
