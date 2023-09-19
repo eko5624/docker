@@ -20,7 +20,7 @@ jobs:
       - name: Make docker
         id: make_docker
         run: |
-          pacman -Syu --noconfirm make devtools podman fakechroot fakeroot
+          pacman -Syu --noconfirm make devtools podman fakechroot fakeroot docker curl jq
           mkdir -p build output
           mkdir -vp build/alpm-hooks/usr/share/libalpm/hooks
           mkdir -vp build/var/lib/pacman/ output
