@@ -24,7 +24,7 @@ jobs:
           mkdir -p build output
           mkdir -vp build/alpm-hooks/usr/share/libalpm/hooks
           mkdir -vp build/var/lib/pacman/ output
-          packages=(base base-devel jq git ninja cmake yasm nasm unzip p7zip python-cairo python-pip curl wget)
+          packages=(base base-devel jq git ninja cmake yasm nasm clang lld libc++ libc++abi unzip p7zip python-cairo python-pip curl wget)
           find /usr/share/libalpm/hooks -exec ln -sf /dev/null build/alpm-hooks{} \;
           install -Dm644 /usr/share/devtools/pacman.conf.d/extra.conf build/etc/pacman.conf
           cat pacman-conf.d-noextract.conf >> build/etc/pacman.conf
@@ -73,7 +73,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          package_id=$(curl -su $GITHUB_ACTOR:$GH_TOKEN -X GET -H "Accept: application/vnd.github.v3+json" https://api.github.com/user/packages/container/archlinux/versions | jq -r 'map(select(.metadata.container.tags | length == 0)) | .[].id')
+          package_id=$(curl -su eko5624:$GH_TOKEN -X GET -H "Accept: application/vnd.github.v3+json" https://api.github.com/user/packages/container/archlinux/versions | jq -r 'map(select(.metadata.container.tags | length == 0)) | .[].id')
           for id in ${package_id[@]}; do
-            curl -su $GITHUB_ACTOR:$GH_TOKEN -X DELETE -H "Accept: application/vnd.github.v3+json" https://api.github.com/user/packages/container/archlinux/versions/$id
+            curl -su eko5624:$GH_TOKEN -X DELETE -H "Accept: application/vnd.github.v3+json" https://api.github.com/user/packages/container/archlinux/versions/$id
           done
