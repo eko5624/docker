@@ -56,10 +56,11 @@ jobs:
           password: ${{ github.token }}
 
       - name: Build and push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: Dockerfile.workflows
+          provenance: false
           push: true
           tags: ghcr.io/${{ github.actor }}/archlinux:latest
 
