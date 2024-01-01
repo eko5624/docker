@@ -1,4 +1,4 @@
-FROM alpine:3.16 AS verify
+FROM alpine:3.19 AS verify
 COPY output/rootfs.tar.zst /
 RUN apk add --no-cache tar zstd
 RUN mkdir /rootfs && tar -C /rootfs --extract --file rootfs.tar.zst
