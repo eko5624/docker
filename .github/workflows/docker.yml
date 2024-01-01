@@ -13,7 +13,7 @@ jobs:
     name: Building docker
     runs-on: ubuntu-latest
     container:
-      image: docker://archlinux:latest
+      image: docker://ghcr.io/archlinux/archlinux:latest
 
     steps:
       - uses: actions/checkout@main
@@ -30,6 +30,7 @@ jobs:
           cat pacman-conf.d-noextract.conf >> build/etc/pacman.conf
           sed 's/Include = /&rootfs/g' < build/etc/pacman.conf > pacman.conf
           cp --recursive --preserve=timestamps --backup --suffix=.pacnew rootfs/* build/
+          ln -fs /usr/lib/os-release build/etc/os-release
           fakechroot -- fakeroot -- \
             pacman -Sy -r build \
               --noconfirm --dbpath build/var/lib/pacman \
@@ -40,12 +41,13 @@ jobs:
           fakechroot -- fakeroot -- chroot build update-ca-trust
           fakechroot -- fakeroot -- chroot build pacman-key --init
           fakechroot -- fakeroot -- chroot build pacman-key --populate
-          #fakechroot -- fakeroot -- chroot build sh -c 'pacman-key --init && pacman-key --populate && bash -c "rm -rf etc/pacman.d/gnupg/{openpgp-revocs.d/,private-keys-v1.d/,pubring.gpg~,gnupg.S.}*"'
-          ln -fs /usr/lib/os-release build/etc/os-release
+        
           # add system users
           fakechroot -- fakeroot -- chroot build /usr/bin/systemd-sysusers --root "/"
+          
           # remove passwordless login for root (see CVE-2019-5021 for reference)
           sed -i -e 's/^root::/root:!:/' "build/etc/shadow"
+          
           # fakeroot to map the gid/uid of the builder process to root
           # fixes #22
           fakechroot -- fakeroot -- tar --numeric-owner --xattrs --acls --exclude-from=exclude -C build -c . -f output/rootfs.tar
