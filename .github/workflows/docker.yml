@@ -46,7 +46,8 @@ jobs:
           fakechroot -- fakeroot -- chroot build /usr/bin/systemd-sysusers --root "/"
 
           # add builder user
-          fakechroot -- fakeroot -- chroot build useradd builder -m
+          #fakechroot -- fakeroot -- chroot build useradd builder -m
+          fakechroot -- fakeroot -- chroot build useradd -m -u 1000 -g 1000 -s /bin/bash builder
           echo "builder ALL=(ALL) NOPASSWD: ALL" >> build/etc/sudoers
           
           # remove passwordless login for root (see CVE-2019-5021 for reference)
