@@ -46,10 +46,15 @@ jobs:
           fakechroot -- fakeroot -- chroot build /usr/bin/systemd-sysusers --root "/"
 
           # add builder user
-          #fakechroot -- fakeroot -- chroot build useradd builder -m
           fakechroot -- fakeroot -- chroot build groupadd -g 1000 builder_group
           fakechroot -- fakeroot -- chroot build useradd -m -u 1000 -g 1000 -s /bin/bash -G builder_group builder
           echo "builder ALL=(ALL) NOPASSWD: ALL" >> build/etc/sudoers
+
+          # copy makepkg-cross and makepkg_cross.conf
+          curl -OL https://raw.githubusercontent.com/eko5624/mpv-winbuild/mcf/pacman-config/makepkg-cross
+          curl -OL https://raw.githubusercontent.com/eko5624/mpv-winbuild/mcf/pacman-config/makepkg_cross.conf
+          mv makepkg-cross build/etc
+          mv makepkg_cross.conf build/usr/bin
           
           # remove passwordless login for root (see CVE-2019-5021 for reference)
           sed -i -e 's/^root::/root:!:/' "build/etc/shadow"
