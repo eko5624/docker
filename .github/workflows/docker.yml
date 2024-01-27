@@ -51,10 +51,10 @@ jobs:
           echo "builder ALL=(ALL) NOPASSWD: ALL" >> build/etc/sudoers
 
           # copy makepkg-cross and makepkg_cross.conf
-          curl -OL https://raw.githubusercontent.com/eko5624/mpv-winbuild/mcf/pacman-config/makepkg-cross
-          curl -OL https://raw.githubusercontent.com/eko5624/mpv-winbuild/mcf/pacman-config/makepkg_cross.conf
-          install -Dm755 makepkg-cross build/usr/bin
-          install -Dm644 makepkg_cross.conf build/etc
+          #curl -OL https://raw.githubusercontent.com/eko5624/mpv-winbuild/mcf/pacman-config/makepkg-cross
+          #curl -OL https://raw.githubusercontent.com/eko5624/mpv-winbuild/mcf/pacman-config/makepkg_cross.conf
+          #install -Dm755 makepkg-cross build/usr/bin
+          #install -Dm644 makepkg_cross.conf build/etc
           
           # remove passwordless login for root (see CVE-2019-5021 for reference)
           sed -i -e 's/^root::/root:!:/' "build/etc/shadow"
