@@ -13,7 +13,7 @@ jobs:
     name: Building docker
     runs-on: ubuntu-latest
     container:
-      image: docker://ghcr.io/archlinux/archlinux:latest
+      image: docker://archlinux:latest
 
     steps:
       - uses: actions/checkout@main
