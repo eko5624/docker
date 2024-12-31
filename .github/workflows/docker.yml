@@ -57,7 +57,7 @@ jobs:
           fakechroot -- fakeroot -- tar --numeric-owner --xattrs --acls --exclude-from=exclude -C build -c . -f output/rootfs.tar
           cd output; zstd --long -T0 -8 rootfs.tar; cd ..
 
-      - name: Set up Docker Buildx
+      - name: Setup Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
 
