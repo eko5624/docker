@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: docker://ghcr.io/archlinux/archlinux:latest
-
     steps:
       - uses: actions/checkout@main
       - name: Make docker
