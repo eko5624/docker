@@ -1,0 +1,87 @@
+name: Docker
+defaults:
+  run:
+    shell: bash
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 22 * * 0'
+
+jobs:
+  build:
+    name: Building docker
+    runs-on: ubuntu-latest
+    container:
+      image: docker://ghcr.io/archlinux/archlinux:latest
+    steps:
+      - uses: actions/checkout@main
+      - name: Make docker
+        id: make_docker
+        run: |
+          pacman -Syu --noconfirm make devtools podman fakechroot fakeroot docker curl jq
+          mkdir -p build output
+          mkdir -vp build/alpm-hooks/usr/share/libalpm/hooks
+          mkdir -vp build/var/lib/pacman/ output
+          packages=(base base-devel jq openssh git mercurial subversion ninja cmake nasm asciidoc enca gperf go zip unzip p7zip python-cairo python-pip curl wget mimalloc ccache)
+          find /usr/share/libalpm/hooks -exec ln -sf /dev/null build/alpm-hooks{} \;
+          install -Dm644 /usr/share/devtools/pacman.conf.d/extra.conf build/etc/pacman.conf
+          cat pacman-conf.d-noextract.conf >> build/etc/pacman.conf
+          sed 's/Include = /&rootfs/g' < build/etc/pacman.conf > pacman.conf
+          cp --recursive --preserve=timestamps --backup --suffix=.pacnew rootfs/* build/
+          ln -fs /usr/lib/os-release build/etc/os-release
+          fakechroot -- fakeroot -- \
+            pacman -Sy -r build \
+              --noconfirm --dbpath build/var/lib/pacman \
+              --config pacman.conf \
+              --noscriptlet \
+              --hookdir build/alpm-hooks/usr/share/libalpm/hooks/ ${packages[@]}
+          fakechroot -- fakeroot -- chroot build pip3 install --no-cache-dir --upgrade --break-system-packages setuptools rst2pdf mako jsonschema meson
+          fakechroot -- fakeroot -- chroot build update-ca-trust
+          fakechroot -- fakeroot -- chroot build pacman-key --init
+          fakechroot -- fakeroot -- chroot build pacman-key --populate
+        
+          # add system users
+          fakechroot -- fakeroot -- chroot build /usr/bin/systemd-sysusers --root "/"
+
+          # remove passwordless login for root (see CVE-2019-5021 for reference)
+          sed -i -e 's/^root::/root:!:/' "build/etc/shadow"
+          
+          # fakeroot to map the gid/uid of the builder process to root
+          # fixes #22
+          fakechroot -- fakeroot -- tar --numeric-owner --xattrs --acls --exclude-from=exclude -C build -c . -f output/rootfs.tar
+          cd output; zstd --long -T0 -8 rootfs.tar; cd ..
+
+      - name: Setup Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.workflows
+          provenance: false
+          push: true
+          tags: ghcr.io/${{ github.actor }}/archlinux:latest
+
+      - name: Upload bootstrap artifact
+        uses: actions/upload-artifact@main
+        with:
+          name: rootfs
+          path: output/rootfs.tar.zst
+
+      - name: Delete untagged docker
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          package_id=$(curl -su $GITHUB_ACTOR:$GH_TOKEN -X GET -H "Accept: application/vnd.github.v3+json" https://api.github.com/user/packages/container/archlinux/versions | jq -r 'map(select(.metadata.container.tags | length == 0)) | .[].id')
+          for id in ${package_id[@]}; do
+            curl -su $GITHUB_ACTOR:$GH_TOKEN -X DELETE -H "Accept: application/vnd.github.v3+json" https://api.github.com/user/packages/container/archlinux/versions/$id
+          done
