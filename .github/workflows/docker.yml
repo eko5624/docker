@@ -35,7 +35,7 @@ jobs:
               --config pacman.conf \
               --noscriptlet \
               --hookdir build/alpm-hooks/usr/share/libalpm/hooks/ ${packages[@]}
-          fakechroot -- fakeroot -- chroot build pip3 install --no-cache-dir --upgrade --break-system-packages setuptools rst2pdf mako jsonschema meson
+          fakechroot -- fakeroot -- chroot build pip3 install --no-cache-dir --upgrade --break-system-packages setuptools rst2pdf mako jsonschema meson==1.9.2
           fakechroot -- fakeroot -- chroot build update-ca-trust
           fakechroot -- fakeroot -- chroot build pacman-key --init
           fakechroot -- fakeroot -- chroot build pacman-key --populate
