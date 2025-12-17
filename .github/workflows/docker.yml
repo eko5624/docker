@@ -27,10 +27,24 @@ jobs:
           install -Dm644 /usr/share/devtools/pacman.conf.d/extra.conf build/etc/pacman.conf
           cat pacman-conf.d-noextract.conf >> build/etc/pacman.conf
           sed 's/Include = /&rootfs/g' < build/etc/pacman.conf > pacman.conf
+
+          if grep -q '#DisableSandboxFilesystem' "build/etc/pacman.conf"; then
+          sed -i '/#DisableSandboxFilesystem/{c\
+          # No kernel landlock in containerd\
+          DisableSandboxFilesystem
+          }' "build/etc/pacman.conf"
+          else
+          sed -i '/#DisableSandbox/{c\
+          # No kernel landlock in containerd\
+          DisableSandbox
+          }' "build/etc/pacman.conf"
+          fi
+
           cp --recursive --preserve=timestamps --backup --suffix=.pacnew rootfs/* build/
           ln -fs /usr/lib/os-release build/etc/os-release
           fakechroot -- fakeroot -- \
             pacman -Sy -r build \
+              --disable-sandbox-filesystem \
               --noconfirm --dbpath build/var/lib/pacman \
               --config pacman.conf \
               --noscriptlet \
